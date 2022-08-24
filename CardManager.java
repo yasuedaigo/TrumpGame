@@ -1,62 +1,114 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CardManager {
-    
+    public static final Map<Integer, Integer> NUMBER_VALUES = new HashMap<>();
+    static {
+        NUMBER_VALUES.put(1, 11);
+        NUMBER_VALUES.put(11, 10);
+        NUMBER_VALUES.put(12, 10);
+        NUMBER_VALUES.put(13, 10);
+    }
+    private final int TOP_INDEX = 0;
+    private final int MAX_SCORE = 21;
+    private final String DROWCARD_MESSAGE = "%sをひきました";
+    private final String SCORE_MESSAGE = "点数は%dです";
+    private final String HAND_MESSAGE = "現在の手札は：";
     private ArrayList<Card> deck = new ArrayList<>();
     private ArrayList<Card> hands = new ArrayList<>();
-    private final int MAX_HAND_NUMBER = 2;
-    private final String RANKING_MESSAGE = "%d 位: %s %d";
-    private final int START_RANK = 1;
 
     public CardManager() {
         this.reset();
         this.shuffle();
     }
 
-    public void reset(){
+    public void reset() {
         deck.clear();
-        for(Card.MARKS mark : Card.MARKS.values()){
-            for(int i=1;i<=Card.MAX_NUMBER;i++){
-                Card card = new Card(i,mark);
+        for (Card.MARKS mark : Card.MARKS.values()) {
+            for (int i = 1; i <= Card.MAX_NUMBER; i++) {
+                Card card = new Card(i, mark);
                 deck.add(card);
             }
         }
     }
 
-    public void shuffle(){
+    public void shuffle() {
         Collections.shuffle(deck);
     }
 
-    public void draw(){
-        System.out.println(deck.get(0).toString() +"をひきました");
-        hands.add(deck.get(0));
-        deck.remove(0);
-        showInfo(hands);
-        if(isMax(hands)){
-            this.scoreCalc(hands);
-            hands.clear();
-        }
+    private void showDrawMessage() {
+        System.out.println(String.format(DROWCARD_MESSAGE, deck.get(TOP_INDEX).toString()));
     }
 
-    private boolean isMax(ArrayList<Card> hands){
-        return hands.size() == MAX_HAND_NUMBER;
+    private void showScoreMessage(int score) {
+        System.out.println(String.format(SCORE_MESSAGE, score));
     }
 
-    private void scoreCalc(ArrayList<Card> hands){
+    public void draw() {
+
+        showHands(hands);
+        showDrawMessage();
+        hands.add(deck.get(TOP_INDEX));
+        deck.remove(TOP_INDEX);
+
+        showHands(hands);
+    }
+
+    public void scoreCalc() {
+        showHands(hands);
         int score = 0;
         for (Card card : hands) {
-            score = score + card.getNumber();
+            score = score + numberValue(card);
         }
-        System.out.println("点数は"+score +"です");
+        score = adjustAce(hands, score);
+        showScoreMessage(score);
+        hands.clear();
     }
 
-    private void showInfo(ArrayList<Card> hands){
-        System.out.println("現在の手札は");
-        for (Card card : hands) {
-            card.showInfo();
+    private int numberValue(Card card) {
+        if (NUMBER_VALUES.containsKey(card.getNumber())) {
+            return NUMBER_VALUES.get(card.getNumber());
         }
+        return card.getNumber();
+    }
+
+    private int adjustAce(ArrayList<Card> hands, int score) {
+        for (Card card : hands) {
+            if (isAce(card)) {
+                if (isOver(score)) {
+                    score  = downAce(score);
+                }
+            }
+        }
+        return score;
+    }
+
+    private int downAce(int score) {
+        return score - 10;
+    }
+
+    private boolean isAce(Card card) {
+        return card.getNumber() == 1;
+    }
+
+    private boolean isOver(int score) {
+        return score > MAX_SCORE;
+    }
+
+    private void showHands(ArrayList<Card> hands) {
+        showHandMessage();
+        for (Card card : hands) {
+            System.out.print(card.numberChar() + " ");
+        }
+        System.out.println("");
+    }
+
+    private void showHandMessage() {
+        System.out.print(HAND_MESSAGE);
     }
 }
