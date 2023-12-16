@@ -9,6 +9,7 @@ public class Deck {
         reset();
     }
 
+    //デッキをリセットする
     public void reset() {
         cards = new ArrayList<>();
         for (Card.Mark mark : Card.Mark.values()) {
@@ -18,10 +19,12 @@ public class Deck {
         }
     }
 
+    //デッキをシャッフルする
     public void shuffle() {
         Collections.shuffle(cards);
     }
 
+    //デッキからカードを1枚引く
     public Card draw() {
         if (cards.isEmpty()) {
             throw new IllegalStateException("Deck is empty");
